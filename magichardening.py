@@ -21,18 +21,19 @@ if (dist[0] == "debian"):
 	apache = os.path.exists('/etc/apache2/')
 	nginx = os.path.exists('/etc/nginx/')
 	php = os.path.exists('/etc/php5/apache2/php.ini')
+	ssh = os.path.exists('/etc/ssh/sshd_config')
 
 	#Check other versions of PHP.
 	version = 5
 	if (php != True):
-		php = os.path.exists('/etc/php7/apache2/php.ini')
+		php = os.path.exists('/etc/php/7*/apache2/php.ini')
 		version = 7
 
 	if (php != True):
 		php = os.path.exists('/etc/php/apache2/php.ini')
 		version = ""
 
-	#Asegurarnos que existe el directorio apache con los ficheros que hemos de consultar.
+	#Exist the folder that contains virtualhosts?
 	if (apache == True):
 		apache = os.path.exists('/etc/apache2/sites-enabled/')
 
@@ -190,6 +191,16 @@ if (dist[0] == "debian"):
 			else:
 				print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
 
+	if (ssh == True):
+		os.system("/etc/ssh/sshd_config /tmp/.sshd_config")
+		cmd = os.popen('grep "Port 22"').read()
+                if cmd:
+			os.system("sed 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
+			print ("\033[1;32;40m [PASS] - Changing default port of SSH (22) to 40022")
+		else:
+			print ("\033[1;34;40m [CORRECT] - SSH port is not a default port")
+
+
 elif (dist[0] == "CentOS"):
 	print ("Hola")
 	#check apache and nginx.
@@ -213,5 +224,21 @@ elif (dist[0] == "CentOS"):
 		else:
 			print ("\033[1;34;40m [CORRECT] - ServerTokens value is Prod")
 
+		#Change Options.
+		cmd = os.popen('grep -R "Options None" /etc/httpd/conf/httpd.conf').read()
+		if cmd:
+			#Canviar la part del \n
+			command = "grep -R 'Options' /etc/httpd/conf/httpd.conf | cut -d':' -f2 | xargs -I '{}' sed -i 's/Options None/Options -ExecCGI -Indexes -Includes/g' /etc/httpd/conf/httpd.conf"
+			os.system(command)
+			print ("\033[1;32;40m [PASS] Changing Options...")
+		else:
+			print ("\033[1;34;40m [CORRECT] - Options directive is correct!")
+
+
+
 		os.system("systemctl restart httpd")
-		
+	
+		print ("\033[1;37;40m [+] Installing mod_security and mod_evasive...")	
+		os.system("yum install -y mod_security")
+		os.system("yum install -y mod_evasive")
+		os.system("systemctl restart httpd")
