@@ -13,6 +13,25 @@ print ("	              |___/                                                 |__
 print ("								       By @magichk")
 
 
+#Function to disable mysql history if exists mysql conf.
+def disableMysqlHistory():
+    cmd = os.popen('env | grep MYSQL').read()
+    if cmd:
+        print ("\033[1;34;40m [CORRECT] - The .mysql_history is not logging mysql commands")
+    else:
+        cmd2 = os.popen("grep 'MYSQL_HISTFILE' /etc/profile").read()
+        if cmd2:
+            print ("\033[1;34;40m [CORRECT] - The .mysql_history is not logging mysql commands")
+        else:
+            os.system("echo 'export MYSQL_HISTFILE=\"/dev/null\"' >> /etc/profile")
+            os.system("source /etc/profile")
+            print ("\033[1;32;40m [PASS] - Disabled .mysql_history file")
+
+
+
+
+
+
 #Detect OS distribution: debian, centos..
 dist = platform.linux_distribution()
 
@@ -22,6 +41,7 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 	nginx = os.path.exists('/etc/nginx/')
         php = os.path.exists('/etc/php5/apache2/')
         ssh = os.path.exists('/etc/ssh/sshd_config')
+        mysql = os.path.exists('/etc/mysql')
 
 	#Check other versions of PHP.
 	version = 5
@@ -232,6 +252,11 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
             if (flag == 1):
                 os.system("systemctl restart ssh")
                 print ("\033[1;37;40m [-] RESTARTING ssh service...")
+
+        if (mysql == True):
+            print ("\033[1;37;40m [+] Checking MySQL Config...")
+            disableMysqlHistory()
+
 
 elif (dist[0] == "CentOS"):
 	#check apache and nginx.
