@@ -33,7 +33,7 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 		php = os.path.exists('/etc/php/apache2/php.ini')
 		version = ""
 
-	#Asegurarnos que existe el directorio apache con los ficheros que hemos de consultar.
+	#Really exists sites-enabled folder?
 	if (apache == True):
 		apache = os.path.exists('/etc/apache2/sites-enabled/')
 
@@ -63,7 +63,6 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 		#Change Options. 
 		cmd = os.popen('grep -R "Options None" /etc/apache2/sites-enabled/').read()
 		if cmd:
-			#Canviar la part del \n
 			command = "grep -R 'Options' /etc/apache2/sites-enabled/ | cut -d':' -f2 | xargs -I '{}' sed -i 's/Options None/Options -ExecCGI -Indexes -Includes/g' /etc/apache2/sites-enabled/*"
 			os.system(command)
 			print ("\033[1;32;40m [PASS] Changing Options...")
@@ -199,15 +198,15 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
             os.system("cp -Ra /etc/ssh  /tmp/.ssh")
             cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
             if cmd:
-                #Si exite un # , eliminarlo
+                #If exist # , delete
                 inicio = cmd.find("#")
                 if (inicio != -1):
-                    #sed con el #
+                    #sed with #
                     os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
                     flag = 1
                 else:
-                    #sed sin el #
+                    #sed without #
                     os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
                     flag = 1
@@ -258,7 +257,20 @@ elif (dist[0] == "CentOS"):
 			print ("\033[1;34;40m [CORRECT] - ServerTokens value is Prod")
 
 		os.system("systemctl restart httpd")
-		
+
+        #Searching backup files in DocumentRoot directory!
+        #Search DocumentRoot directory
+        print ("\033[1;37;40m [+] Checking for backup files in DocumentRoot directory...")
+        cmd = os.popen("grep 'DocumentRoot' /etc/apache2/sites-enabled/* | awk '{{print $2}}'").read()
+        if cmd:
+            documentroot = cmd
+            documentroot = documentroot[:-1]
+            cmd = os.popen('find ' + documentroot + ' -type f -name  "*.bak" -o -name "*-DR" -o -name "*.back" -o -name "*.old" -o -name "*.OLD"').read()
+            if cmd:
+                print ("\033[1;31;40m A backup file found in:\n " + cmd)
+        else:
+                print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
+
         #Check if SSH Port listen in default port and change it
         flag = 0
         if (ssh == True):
@@ -266,15 +278,15 @@ elif (dist[0] == "CentOS"):
             os.system("cp -Ra /etc/ssh  /tmp/.ssh")
             cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
             if cmd:
-                #Si exite un # , eliminarlo
+                #If exist # , delete
                 inicio = cmd.find("#")
                 if (inicio != -1):
-                    #sed con el #
+                    #sed with #
                     os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
                     flag = 1
                 else:
-                    #sed sin el #
+                    #sed without #
                     os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
                     flag = 1
