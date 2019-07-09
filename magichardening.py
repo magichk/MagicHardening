@@ -16,12 +16,16 @@ print ("								       By @magichk")
 #Detect OS distribution: debian, centos..
 dist = platform.linux_distribution()
 
-if (dist[0] == "debian"):
+if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 	#check apache and nginx.
 	apache = os.path.exists('/etc/apache2/')
 	nginx = os.path.exists('/etc/nginx/')
-	php = os.path.exists('/etc/php5/apache2/php.ini')
-	ssh = os.path.exists('/etc/ssh/sshd_config')
+        php = os.path.exists('/etc/php5/apache2/')
+        
+        
+        
+        
+        ssh = os.path.exists('/etc/ssh/sshd_config')
 
 	#Check other versions of PHP.
 	version = 5
@@ -33,7 +37,7 @@ if (dist[0] == "debian"):
 		php = os.path.exists('/etc/php/apache2/php.ini')
 		version = ""
 
-	#Exist the folder that contains virtualhosts?
+	#Asegurarnos que existe el directorio apache con los ficheros que hemos de consultar.
 	if (apache == True):
 		apache = os.path.exists('/etc/apache2/sites-enabled/')
 
@@ -160,18 +164,18 @@ if (dist[0] == "debian"):
 		print ("\033[1;37;40m [+] Checking php configuration...")
 	
 		#Hide php version
-		cmd = os.popen('grep -R "expose_php = On" /etc/php'+str(version)+'/apache2/php.ini').read()
+		cmd = os.popen('grep -R "expose_php = On" /etc/php/7.2/apache2/').read()
 		if cmd:
-			os.system("sed -i 's/expose_php = On/expose_php = Off/g' /etc/php"+str(version)+"/apache2/php.ini")
+			os.system("sed -i 's/expose_php = On/expose_php = Off/g' /etc/php/7.2/apache2/")
 			print ("\033[1;32;40m [PASS] Config of php.ini updated")
 		else:
 			print ("\033[1;34;40m [CORRECT] - php.ini is up to date")
 
 		#Hide errors.
 
-		cmd = os.popen('grep -R "display_errors = On" /etc/php'+str(version)+'/apache2/php.ini').read()
+		cmd = os.popen('grep -R "display_errors = On" /etc/php/7.2/apache2/').read()
 		if cmd:
-        	        os.system("sed -i 's/display_errors = Off/display_errors = On/g' /etc/php"+str(version)+"/apache2/php.ini")
+        	        os.system("sed -i 's/display_errors = Off/display_errors = On/g' /etc/php/7.2/apache2/")
                 	print ("\033[1;32;40m [PASS] Config of php.ini updated")
 		else:
         	        print ("\033[1;34;40m [CORRECT] - Hide display_errors is off in php.ini") 
@@ -191,20 +195,47 @@ if (dist[0] == "debian"):
 			else:
 				print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
 
-	if (ssh == True):
-		os.system("/etc/ssh/sshd_config /tmp/.sshd_config")
-		cmd = os.popen('grep "Port 22"').read()
-                if cmd:
-			os.system("sed 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
-			print ("\033[1;32;40m [PASS] - Changing default port of SSH (22) to 40022")
-		else:
-			print ("\033[1;34;40m [CORRECT] - SSH port is not a default port")
 
+        #Check if SSH Port listen in default port and change it
+        if (ssh == True):
+            os.system("cp -Ra /etc/ssh  /tmp/.ssh")
+            cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
+            if cmd:
+                #Si exite un # , eliminarlo
+                inicio = cmd.find("#")
+                if (inicio != -1):
+                    #sed con el #
+                    os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                else:
+                    #sed sin el #
+                    os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+            else:
+                print ("\033[1;34;40m [CORRECT] - The ssh is not in the default port")
+
+            cmd = os.popen("grep 'PermitRootLogin' /etc/ssh/sshd_config").read()
+            if cmd:
+                inicio = cmd.find("#")
+                inicio2 = cmd.find("yes")
+                inicio3 = cmd.find("Yes")
+                if (inicio != -1 and inicio == 0):
+                    os.system("sed -i 's/#PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Disabled root login")
+                elif (inicio2 != -1 or inicio3 != -1):
+                    os.system("sed -i 's/PermitRootLogin/PermitRootLogin no/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Disabled root login")
+                else:
+                    print ("\033[1;34;40m [CORRECT] - The root login is disabled")
+
+            os.system("systemctl restart ssh")
+            print ("\033[1;37;40m [-] RESTARTING ssh service...")
 
 elif (dist[0] == "CentOS"):
 	print ("Hola")
 	#check apache and nginx.
 	apache = os.path.exists('/etc/httpd/')
+        ssh = os.path.exists('/etc/ssh/sshd_config')
 
 	if (apache == True):
 		print ("\033[1;37;40m [+] Checking Apache...")	
@@ -224,21 +255,40 @@ elif (dist[0] == "CentOS"):
 		else:
 			print ("\033[1;34;40m [CORRECT] - ServerTokens value is Prod")
 
-		#Change Options.
-		cmd = os.popen('grep -R "Options None" /etc/httpd/conf/httpd.conf').read()
-		if cmd:
-			#Canviar la part del \n
-			command = "grep -R 'Options' /etc/httpd/conf/httpd.conf | cut -d':' -f2 | xargs -I '{}' sed -i 's/Options None/Options -ExecCGI -Indexes -Includes/g' /etc/httpd/conf/httpd.conf"
-			os.system(command)
-			print ("\033[1;32;40m [PASS] Changing Options...")
-		else:
-			print ("\033[1;34;40m [CORRECT] - Options directive is correct!")
-
-
-
 		os.system("systemctl restart httpd")
-	
-		print ("\033[1;37;40m [+] Installing mod_security and mod_evasive...")	
-		os.system("yum install -y mod_security")
-		os.system("yum install -y mod_evasive")
-		os.system("systemctl restart httpd")
+		
+
+        #Check if SSH Port listen in default port and change it
+        if (ssh == True):
+            os.system("cp -Ra /etc/ssh  /tmp/.ssh")
+            cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
+            if cmd:
+                #Si exite un # , eliminarlo
+                inicio = cmd.find("#")
+                if (inicio != -1):
+                    #sed con el #
+                    os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                else:
+                    #sed sin el #
+                    os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+            else:
+                print ("\033[1;34;40m [CORRECT] - The ssh is not in the default port")
+
+            cmd = os.popen("grep 'PermitRootLogin' /etc/ssh/sshd_config").read()
+            if cmd:
+                inicio = cmd.find("#")
+                inicio2 = cmd.find("yes")
+                inicio3 = cmd.find("Yes")
+                if (inicio != -1 and inicio == 0):
+                    os.system("sed -i 's/#PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Disabled root login")
+                elif (inicio2 != -1 or inicio3 != -1):
+                    os.system("sed -i 's/PermitRootLogin/PermitRootLogin no/g' /etc/ssh/sshd_config")
+                    print ("\033[1;32;40m [PASS] Disabled root login")
+                else:
+                    print ("\033[1;34;40m [CORRECT] - The root login is disabled")
+
+            os.system("systemctl restart ssh")
+            print ("\033[1;37;40m [-] RESTARTING ssh service...")
