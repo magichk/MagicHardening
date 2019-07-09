@@ -21,10 +21,6 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 	apache = os.path.exists('/etc/apache2/')
 	nginx = os.path.exists('/etc/nginx/')
         php = os.path.exists('/etc/php5/apache2/')
-        
-        
-        
-        
         ssh = os.path.exists('/etc/ssh/sshd_config')
 
 	#Check other versions of PHP.
@@ -197,7 +193,9 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 
 
         #Check if SSH Port listen in default port and change it
+        flag = 0
         if (ssh == True):
+            print ("\033[1;37;40m [+] Checking SSH Config...")
             os.system("cp -Ra /etc/ssh  /tmp/.ssh")
             cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
             if cmd:
@@ -207,10 +205,12 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
                     #sed con el #
                     os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                    flag = 1
                 else:
                     #sed sin el #
                     os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                    flag = 1
             else:
                 print ("\033[1;34;40m [CORRECT] - The ssh is not in the default port")
 
@@ -222,17 +222,19 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
                 if (inicio != -1 and inicio == 0):
                     os.system("sed -i 's/#PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Disabled root login")
+                    flag = 1
                 elif (inicio2 != -1 or inicio3 != -1):
                     os.system("sed -i 's/PermitRootLogin/PermitRootLogin no/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Disabled root login")
+                    flag = 1
                 else:
                     print ("\033[1;34;40m [CORRECT] - The root login is disabled")
 
-            os.system("systemctl restart ssh")
-            print ("\033[1;37;40m [-] RESTARTING ssh service...")
+            if (flag == 1):
+                os.system("systemctl restart ssh")
+                print ("\033[1;37;40m [-] RESTARTING ssh service...")
 
 elif (dist[0] == "CentOS"):
-	print ("Hola")
 	#check apache and nginx.
 	apache = os.path.exists('/etc/httpd/')
         ssh = os.path.exists('/etc/ssh/sshd_config')
@@ -257,9 +259,10 @@ elif (dist[0] == "CentOS"):
 
 		os.system("systemctl restart httpd")
 		
-
         #Check if SSH Port listen in default port and change it
+        flag = 0
         if (ssh == True):
+            print ("\033[1;37;40m [+] Checking SSH config...")
             os.system("cp -Ra /etc/ssh  /tmp/.ssh")
             cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
             if cmd:
@@ -269,10 +272,12 @@ elif (dist[0] == "CentOS"):
                     #sed con el #
                     os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                    flag = 1
                 else:
                     #sed sin el #
                     os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                    flag = 1
             else:
                 print ("\033[1;34;40m [CORRECT] - The ssh is not in the default port")
 
@@ -284,11 +289,14 @@ elif (dist[0] == "CentOS"):
                 if (inicio != -1 and inicio == 0):
                     os.system("sed -i 's/#PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Disabled root login")
+                    flag = 1
                 elif (inicio2 != -1 or inicio3 != -1):
                     os.system("sed -i 's/PermitRootLogin/PermitRootLogin no/g' /etc/ssh/sshd_config")
                     print ("\033[1;32;40m [PASS] Disabled root login")
+                    flag = 1
                 else:
                     print ("\033[1;34;40m [CORRECT] - The root login is disabled")
 
-            os.system("systemctl restart ssh")
-            print ("\033[1;37;40m [-] RESTARTING ssh service...")
+            if (flag == 1):
+                os.system("systemctl restart ssh")
+                print ("\033[1;37;40m [-] RESTARTING ssh service...")
