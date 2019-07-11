@@ -324,8 +324,8 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 
 
         #Hardening Filesystem..
-        print ("\033[1;37;40m [+] Checking /etc/host.conf file to prevent IP Spoofing...")
-        preventIpSpoofing()
+        #print ("\033[1;37;40m [+] Checking /etc/host.conf file to prevent IP Spoofing...")
+        #preventIpSpoofing()
 
 
 elif (dist[0] == "CentOS"):
