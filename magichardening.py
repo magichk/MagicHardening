@@ -26,7 +26,9 @@ def disableMysqlHistory():
             os.system("echo 'export MYSQL_HISTFILE=\"/dev/null\"' >> /etc/profile")
             os.system("source /etc/profile")
             print ("\033[1;32;40m [PASS] - Disabled .mysql_history file")
+            restartMysql()
 
+#Funcion for disable load data local infile
 def disableLoadDataLocalInfile():
     flag = 0 
     mysql = os.path.exists('/etc/mysql/mysql.conf.d/mysqld.cnf')
@@ -42,20 +44,55 @@ def disableLoadDataLocalInfile():
             else:
                 os.system("echo 'local-infile=0' >> /etc/mysql/mysql.conf.d/mysqld.cnf")
                 print ("\033[1;32;40m [PASS] - Dissalowing the load data local infile..")
+                print ("\033[1;37;40m [-] RESTARTING mysql service...")
+                restartMysql()
                 flag = 2
         else:
             cmd = os.popen('grep "local-infile" /etc/mysql/my.cnf')
             if cmd:
                 os.system("echo 'local-infile=0' >> /etc/mysql/my.cnf")
                 print ("\033[1;32;40m [PASS] - Dissalowing the load data local infile..")
+                print ("\033[1;37;40m [-] RESTARTING mysql service...")                
+                restartMysql()
                 flag = 2
             else:
                 print ("\033[1;34;40m [CORRECT] - The Load Data Local Infile was disabled")
 
+#Restart mysql service
 def restartMysql():
     print ("\033[1;37;40m [-] RESTARTING mysql service...")
     os.system("systemctl restart mysql")
 
+
+#Prevent IP Spoofing - /etc/host.conf file
+def preventIpSpoofing():
+    host = os.path.exists('/etc/host.conf')
+    if host:
+        cmd = os.popen("grep 'nospoof' /etc/host.conf").read()
+        if cmd:
+            print ("\033[1;34;40m [CORRECT] - /etc/host.conf is OK to prevent IP Spoofing!")
+        else:
+            os.system("cp /etc/host.conf /tmp/.host.conf")
+            newfile = ""
+            f = open("/etc/host.conf", "r")
+            for line in f:
+                inicio2 = line.find("#")
+                if (inicio2 == -1):
+                    inicio = line.find("order")
+                    if (inicio != -1):
+                        newline = "order bind,hosts\nnospoof on\n"
+                        newfile = newfile + newline
+                        break;
+                    else:
+                        newfile = newfile + line
+                else:
+                    newfile = newfile + line
+            f.close()
+
+            f = open("/etc/host.conf", "w")
+            f.write(newfile)
+            f.close()
+            print ("\033[1;32;40m [PASS] - /etc/host.conf file was securized to prevent IP Spoofing!")
 
 
 #Detect OS distribution: debian, centos..
@@ -279,11 +316,17 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
                 os.system("systemctl restart ssh")
                 print ("\033[1;37;40m [-] RESTARTING ssh service...")
 
+        #Securing Mysql...
         if (mysql == True):
             print ("\033[1;37;40m [+] Checking MySQL Config...")
             disableMysqlHistory()
             disableLoadDataLocalInfile()
-            restartMysql()
+
+
+        #Hardening Filesystem..
+        print ("\033[1;37;40m [+] Checking /etc/host.conf file to prevent IP Spoofing...")
+        preventIpSpoofing()
+
 
 elif (dist[0] == "CentOS"):
 	#check apache and nginx.
