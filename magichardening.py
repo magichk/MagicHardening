@@ -27,7 +27,30 @@ def disableMysqlHistory():
             os.system("source /etc/profile")
             print ("\033[1;32;40m [PASS] - Disabled .mysql_history file")
 
+def disableLoadDataLocalInfile():
+    flag = 0 
+    mysql = os.path.exists('/etc/mysql/mysql.conf.d/mysqld.cnf')
+    if (mysql == False):
+        mysql = os.path.exists('/etc/mysql/my.cnf')
+        flag = 1
 
+    if (mysql == True):
+        if (flag == 0):
+            cmd = os.popen('grep "local-infile" /etc/mysql/mysql.conf.d/mysqld.cnf').read()
+            if cmd:
+                print ("\033[1;34;40m [CORRECT] - The Load Data Local Infile was disabled")
+            else:
+                os.system("echo 'local-infile=0' >> /etc/mysql/mysql.conf.d/mysqld.cnf")
+                print ("\033[1;32;40m [PASS] - Dissalowing the load data local infile..")
+                flag = 2
+        else:
+            cmd = os.popen('grep "local-infile" /etc/mysql/my.cnf')
+            if cmd:
+                os.system("echo 'local-infile=0' >> /etc/mysql/my.cnf")
+                print ("\033[1;32;40m [PASS] - Dissalowing the load data local infile..")
+                flag = 2
+            else:
+                print ("\033[1;34;40m [CORRECT] - The Load Data Local Infile was disabled")
 
 
 
@@ -256,6 +279,7 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
         if (mysql == True):
             print ("\033[1;37;40m [+] Checking MySQL Config...")
             disableMysqlHistory()
+            disableLoadDataLocalInfile()
 
 
 elif (dist[0] == "CentOS"):
