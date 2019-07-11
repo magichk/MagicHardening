@@ -52,6 +52,9 @@ def disableLoadDataLocalInfile():
             else:
                 print ("\033[1;34;40m [CORRECT] - The Load Data Local Infile was disabled")
 
+def restartMysql():
+    print ("\033[1;37;40m [-] RESTARTING mysql service...")
+    os.system("systemctl restart mysql")
 
 
 
@@ -280,7 +283,7 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
             print ("\033[1;37;40m [+] Checking MySQL Config...")
             disableMysqlHistory()
             disableLoadDataLocalInfile()
-
+            restartMysql()
 
 elif (dist[0] == "CentOS"):
 	#check apache and nginx.
