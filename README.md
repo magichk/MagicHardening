@@ -9,3 +9,5 @@ With magichardening you can securize some services and apps on debian,ubuntu and
 - MySQL
 
 And checks backup files on DocumentRoot of VirtualServers on webservers to prevent that an attacker stole it with enumeration attacks.
+
+Note: When you execute the python script he do a backup into /tmp directory in hidden mode. When they finish, please check /tmp and delete old files. 
