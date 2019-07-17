@@ -230,23 +230,23 @@ def hardeningNginx():
 
 def hiddenPhpInfo():
     if (php == True):
-		print ("\033[1;37;40m [+] Checking php configuration...")
+        print ("\033[1;37;40m [+] Checking php configuration...")
 
-		#Hide php version
-		cmd = os.popen('grep -R "expose_php = On" /etc/php/7.2/apache2/').read()
-		if cmd:
-			os.system("sed -i 's/expose_php = On/expose_php = Off/g' /etc/php/7.2/apache2/")
-			print ("\033[1;32;40m [PASS] Config of php.ini updated")
-		else:
-			print ("\033[1;34;40m [CORRECT] - php.ini is up to date")
+        #Hide php version
+        cmd = os.popen('grep -R "expose_php = On" /etc/php/7.2/apache2/').read()
+        if cmd:
+        	os.system("sed -i 's/expose_php = On/expose_php = Off/g' /etc/php/7.2/apache2/")
+        	print ("\033[1;32;40m [PASS] Config of php.ini updated")
+        else:
+        	print ("\033[1;34;40m [CORRECT] - php.ini is up to date")
 
-		#Hide errors.
+        #Hide errors.
 
-		cmd = os.popen('grep -R "display_errors = On" /etc/php/7.2/apache2/').read()
-		if cmd:
+        cmd = os.popen('grep -R "display_errors = On" /etc/php/7.2/apache2/').read()
+        if cmd:
         	        os.system("sed -i 's/display_errors = Off/display_errors = On/g' /etc/php/7.2/apache2/")
                 	print ("\033[1;32;40m [PASS] Config of php.ini updated")
-		else:
+        else:
         	        print ("\033[1;34;40m [CORRECT] - Hide display_errors is off in php.ini")
 
 def securizeSSHConfig():
@@ -310,12 +310,12 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
     	version = 7
 
     if (php != True):
-	php = os.path.exists('/etc/php/apache2/php.ini')
-	version = ""
+	       php = os.path.exists('/etc/php/apache2/php.ini')
+	       version = ""
 
     #Really exists sites-enabled folder?
     if (apache == True):
-	apache = os.path.exists('/etc/apache2/sites-enabled/')
+	       apache = os.path.exists('/etc/apache2/sites-enabled/')
 
 
     #Hide apache2 conf versions.
@@ -352,76 +352,14 @@ elif (dist[0] == "CentOS"):
     ssh = os.path.exists('/etc/ssh/sshd_config')
 
     if (apache == True):
-    	print ("\033[1;37;40m [+] Checking Apache...")
-    	#Change ServerSignature
-    	cmd = os.popen('grep -R "ServerSignature On" /etc/httpd/conf/httpd.conf | grep -v "#" ').read()
-    	if cmd:
-    		os.system("grep -R 'ServerSignature On' /etc/httpd/conf/httpd.conf | grep -v '#' | cut -d':' -f 1 | xargs -i  sed -i 's/ServerSignature On/ServerSignature Off/g' {} ")
-    		print ("\033[1;32;40m [PASS] Changing ServerSignature On to Off")
-    	else:
-    		print ("\033[1;34;40m [CORRECT] - ServerSignature is Off")
+        #Hide apache2 conf versions.
+        HideApacheConf()
 
-    	#Change ServerTokens
-    	cmd = os.popen('grep -R "ServerTokens OS" /etc/httpd/conf/httpd.conf | grep -v "#" | grep -v "Prod"').read()
-    	if cmd:
-    		os.system("grep -R 'ServerTokens' /etc/httpd/conf/httpd.conf | grep -v '#' | grep -v 'Prod' | cut -d':' -f 1 | xargs -i  sed -i 's/ServerTokens OS/ServerTokens Prod/g' {} ")
-    		print ("\033[1;32;40m [PASS] Changing ServerTokens to Prod for hide Apache version")
-    	else:
-    		print ("\033[1;34;40m [CORRECT] - ServerTokens value is Prod")
-
-    	os.system("systemctl restart httpd")
-
-        #Searching backup files in DocumentRoot directory!
-        #Search DocumentRoot directory
-        print ("\033[1;37;40m [+] Checking for backup files in DocumentRoot directory...")
-        cmd = os.popen("grep 'DocumentRoot' /etc/apache2/sites-enabled/* | awk '{{print $2}}'").read()
-        if cmd:
-            documentroot = cmd
-            documentroot = documentroot[:-1]
-            cmd = os.popen('find ' + documentroot + ' -type f -name  "*.bak" -o -name "*-DR" -o -name "*.back" -o -name "*.old" -o -name "*.OLD"').read()
-            if cmd:
-                print ("\033[1;31;40m A backup file found in:\n " + cmd)
-        else:
-                print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
+        #Search backup files in DocumentRoot
+        searchBackupsFilesApache()
 
         #Check if SSH Port listen in default port and change it
         flag = 0
         if (ssh == True):
-            print ("\033[1;37;40m [+] Checking SSH config...")
-            os.system("cp -Ra /etc/ssh  /tmp/.ssh")
-            cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
-            if cmd:
-                #If exist # , delete
-                inicio = cmd.find("#")
-                if (inicio != -1):
-                    #sed with #
-                    os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
-                    print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
-                    flag = 1
-                else:
-                    #sed without #
-                    os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
-                    print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
-                    flag = 1
-            else:
-                print ("\033[1;34;40m [CORRECT] - The ssh is not in the default port")
-
-            cmd = os.popen("grep 'PermitRootLogin' /etc/ssh/sshd_config").read()
-            if cmd:
-                inicio = cmd.find("#")
-                inicio2 = cmd.find("yes")
-                inicio3 = cmd.find("Yes")
-                if (inicio != -1 and inicio == 0):
-                    os.system("sed -i 's/#PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
-                    print ("\033[1;32;40m [PASS] Disabled root login")
-                    flag = 1
-                elif (inicio2 != -1 or inicio3 != -1):
-                    os.system("sed -i 's/PermitRootLogin/PermitRootLogin no/g' /etc/ssh/sshd_config")
-                    print ("\033[1;32;40m [PASS] Disabled root login")
-                    flag = 1
-                else:
-                    print ("\033[1;34;40m [CORRECT] - The root login is disabled")
-
-            if (flag == 1):
-                os.system("systemctl restart ssh")
-                print ("\033[1;37;40m [-] RESTARTING ssh service...")
+            #Securize SSH config securizeSSHConfig()
+            securizeSSHConfig()
