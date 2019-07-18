@@ -2,6 +2,7 @@
 
 import os
 import platform
+import subprocess
 
 print (" 	 __  __             _      _   _               _            _             ")
 print ("	|  \/  | __ _  __ _(_) ___| | | | __ _ _ __ __| | ___ _ __ (_)_ __   __ _ ")
@@ -292,6 +293,29 @@ def securizeSSHConfig():
             os.system("systemctl restart ssh")
             print ("\033[1;37;40m [-] RESTARTING ssh service...")
 
+#Check if unhide is available on the system.
+def checkUnhideAvailable():
+    unhide = os.path.exists('/usr/sbin/unhide')
+    if (unhide == True):
+        return True
+
+#Scan the system with unhide
+def unhideScan():
+    print ("\033[1;37;40m [+] Checking system with unhide, wait please..")
+    unhide = os.system("unhide brute -v -f >/dev/null 2>&1")
+    print ("\033[1;34;40m [CORRECT] - Unhide scan was successfuly , check log to see datails")
+
+#Install unhide
+def installUnhideDebian():
+    print ("\033[1;37;40m [+] Installing unhide to detect hidden services in the system..")
+    os.system("apt-get install unhide -y >/dev/null 2>&1")
+    unhide = os.path.exists('/usr/sbin/unhide')
+    if (unhide == True):
+        print ("\033[1;32;40m [PASS] Unhide was installed successfuly")
+    else:
+        print ("\033[1;31;40m Unhide was not installed correctly")
+
+
 #Detect OS distribution: debian, centos..
 dist = platform.linux_distribution()
 
@@ -339,8 +363,15 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
         disableMysqlHistory()
         disableLoadDataLocalInfile()
 
+    #check unhide binary
+    print ("\033[1;37;40m [+] Checking unhide..")
+    unhide = checkUnhideAvailable()
+    if (unhide == True):
+        unhideScan()
+    else:
+        installUnhideDebian()
+        unhideScan()
 
-    #Hardening Filesystem..
     #print ("\033[1;37;40m [+] Checking /etc/host.conf file to prevent IP Spoofing...")
     #preventIpSpoofing()
 
