@@ -315,6 +315,13 @@ def installUnhideDebian():
     else:
         print ("\033[1;31;40m Unhide was not installed correctly")
 
+#Sync time zone with hora.rediris.es
+def checkNTP():
+    print ("\033[1;37;40m [+] Sync ntp with hora.rediris.es")
+    os.system("ntpdate hora.rediris.es >/dev/null 2>&1")
+    print ("\033[1;34;40m [CORRECT] - Time sync with hora.rediris.es")
+
+
 
 #Detect OS distribution: debian, centos..
 dist = platform.linux_distribution()
@@ -362,6 +369,9 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
         print ("\033[1;37;40m [+] Checking MySQL Config...")
         disableMysqlHistory()
         disableLoadDataLocalInfile()
+
+    #Check NTP
+    checkNTP()
 
     #check unhide binary
     print ("\033[1;37;40m [+] Checking unhide..")
