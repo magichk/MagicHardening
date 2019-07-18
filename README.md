@@ -7,7 +7,8 @@ With magichardening you can securize some services and apps on debian,ubuntu and
 - SSH
 - PHP
 - MySQL
-- NTP 
+- NTP
+ 
 And checks backup files on DocumentRoot of VirtualServers on webservers to prevent that an attacker stole it with enumeration attacks.
 
 Software installed in debian systems: 
