@@ -223,6 +223,7 @@ def  searchBackupsFilesApacheCentos():
     			print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
 
 def hardeningNginx():
+    nginx = os.path.exists('/etc/nginx/')
     if (nginx == True):
         print ("\033[1;37;40m [+] Checking nginx...")
 
