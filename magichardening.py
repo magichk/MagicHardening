@@ -212,7 +212,7 @@ def  searchBackupsFilesApacheCentos():
     if (apache == True):
     	#Search DocumentRoot directory
     	print ("\033[1;37;40m [+] Checking for backup files in DocumentRoot directory...")
-    	cmd = os.popen("grep 'DocumentRoot' /etc/httpd/conf/* | awk '{{print $2}}'").read()
+    	cmd = os.popen("grep 'DocumentRoot' /etc/httpd/conf/* | grep -v '#' | awk '{{print $2}}'").read()
     	if cmd:
     		documentroot = cmd
     		documentroot = documentroot[:-1]
