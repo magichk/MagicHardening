@@ -410,9 +410,9 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
     #preventIpSpoofing()
 
 
-elif (dist[0] == "CentOS"):
+elif (dist[0] == "CentOS" or dist[0] == "CentOS Linux"):
     #Hide apache2 conf versions.
-    HideApacheConfCentos()
+    hideApacheConfCentos()
 
     #Search backup files in DocumentRoot
     searchBackupsFilesApache()
