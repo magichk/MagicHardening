@@ -192,18 +192,35 @@ def hideApacheConfCentos():
 
 def  searchBackupsFilesApache():
     #Searching backup files in DocumentRoot directory!
-	if (apache == True):
-		#Search DocumentRoot directory
-		print ("\033[1;37;40m [+] Checking for backup files in DocumentRoot directory...")
-		cmd = os.popen("grep 'DocumentRoot' /etc/apache2/sites-enabled/* | awk '{{print $2}}'").read()
-		if cmd:
-			documentroot = cmd
-			documentroot = documentroot[:-1]
-			cmd = os.popen('find ' + documentroot + ' -type f -name  "*.bak" -o -name "*-DR" -o -name "*.back" -o -name "*.old" -o -name "*.OLD"').read()
-			if cmd:
-				print ("\033[1;31;40m A backup file found in:\n " + cmd)
-			else:
-				print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
+    apache = os.path.exists('/etc/apache2/sites-enabled')
+    if (apache == True):
+    	#Search DocumentRoot directory
+    	print ("\033[1;37;40m [+] Checking for backup files in DocumentRoot directory...")
+    	cmd = os.popen("grep 'DocumentRoot' /etc/apache2/sites-enabled/* | awk '{{print $2}}'").read()
+    	if cmd:
+    		documentroot = cmd
+    		documentroot = documentroot[:-1]
+    		cmd = os.popen('find ' + documentroot + ' -type f -name  "*.bak" -o -name "*-DR" -o -name "*.back" -o -name "*.old" -o -name "*.OLD"').read()
+    		if cmd:
+    			print ("\033[1;31;40m A backup file found in:\n " + cmd)
+    		else:
+    			print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
+
+def  searchBackupsFilesApacheCentos():
+    #Searching backup files in DocumentRoot directory!
+    apache = os.path.exists('/etc/httpd/conf/')
+    if (apache == True):
+    	#Search DocumentRoot directory
+    	print ("\033[1;37;40m [+] Checking for backup files in DocumentRoot directory...")
+    	cmd = os.popen("grep 'DocumentRoot' /etc/httpd/conf/* | awk '{{print $2}}'").read()
+    	if cmd:
+    		documentroot = cmd
+    		documentroot = documentroot[:-1]
+    		cmd = os.popen('find ' + documentroot + ' -type f -name  "*.bak" -o -name "*-DR" -o -name "*.back" -o -name "*.old" -o -name "*.OLD"').read()
+    		if cmd:
+    			print ("\033[1;31;40m A backup file found in:\n " + cmd)
+    		else:
+    			print ("\033[1;34;40m [CORRECT] - No backup files found in DocumentRoot")
 
 def hardeningNginx():
     if (nginx == True):
@@ -415,7 +432,7 @@ elif (dist[0] == "CentOS" or dist[0] == "CentOS Linux"):
     hideApacheConfCentos()
 
     #Search backup files in DocumentRoot
-    searchBackupsFilesApache()
+    searchBackupsFilesApacheCentos()
 
     #Securize SSH config securizeSSHConfig()
     securizeSSHConfig()
