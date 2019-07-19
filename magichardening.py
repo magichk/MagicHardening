@@ -481,4 +481,4 @@ elif (dist[0] == "CentOS" or dist[0] == "CentOS Linux"):
     searchBackupsFilesApacheCentos()
 
     #Securize SSH config securizeSSHConfig()
-    securizeSSHConfig()
+    securizeSSHConfigCentos()
