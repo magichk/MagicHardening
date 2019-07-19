@@ -168,6 +168,28 @@ def HideApacheConf():
         	print ("\033[1;37;40m [-] RESTARTING apache2 service...")
         	os.system("systemctl restart apache2")
 
+def hideApacheConfCentos():
+    apache = os.path.exists('/etc/httpd/')
+    if (apache == True):
+		print ("\033[1;37;40m [+] Checking Apache...")
+		#Change ServerSignature
+		cmd = os.popen('grep -R "ServerSignature On" /etc/httpd/conf/httpd.conf | grep -v "#" ').read()
+		if cmd:
+			os.system("grep -R 'ServerSignature On' /etc/httpd/conf/httpd.conf | grep -v '#' | cut -d':' -f 1 | xargs -i  sed -i 's/ServerSignature On/ServerSignature Off/g' {} ")
+			print ("\033[1;32;40m [PASS] Changing ServerSignature On to Off")
+		else:
+			print ("\033[1;34;40m [CORRECT] - ServerSignature is Off")
+		#Change ServerTokens
+		cmd = os.popen('grep -R "ServerTokens OS" /etc/httpd/conf/httpd.conf | grep -v "#" | grep -v "Prod"').read()
+		if cmd:
+			os.system("grep -R 'ServerTokens' /etc/httpd/conf/httpd.conf | grep -v '#' | grep -v 'Prod' | cut -d':' -f 1 | xargs -i  sed -i 's/ServerTokens OS/ServerTokens Prod/g' {} ")
+			print ("\033[1;32;40m [PASS] Changing ServerTokens to Prod for hide Apache version")
+		else:
+			print ("\033[1;34;40m [CORRECT] - ServerTokens value is Prod")
+		os.system("systemctl restart httpd")
+
+
+
 def  searchBackupsFilesApache():
     #Searching backup files in DocumentRoot directory!
 	if (apache == True):
@@ -251,6 +273,8 @@ def hiddenPhpInfo():
         	        print ("\033[1;34;40m [CORRECT] - Hide display_errors is off in php.ini")
 
 def securizeSSHConfig():
+    ssh = os.path.exists('/etc/ssh/sshd_config')
+
     #Check if SSH Port listen in default port and change it
     flag = 0
     if (ssh == True):
@@ -387,20 +411,11 @@ if (dist[0] == "debian" or dist[0] == "Ubuntu"):
 
 
 elif (dist[0] == "CentOS"):
+    #Hide apache2 conf versions.
+    HideApacheConfCentos()
 
-    #check apache and nginx.
-    apache = os.path.exists('/etc/httpd/')
-    ssh = os.path.exists('/etc/ssh/sshd_config')
+    #Search backup files in DocumentRoot
+    searchBackupsFilesApache()
 
-    if (apache == True):
-        #Hide apache2 conf versions.
-        HideApacheConf()
-
-        #Search backup files in DocumentRoot
-        searchBackupsFilesApache()
-
-        #Check if SSH Port listen in default port and change it
-        flag = 0
-        if (ssh == True):
-            #Securize SSH config securizeSSHConfig()
-            securizeSSHConfig()
+    #Securize SSH config securizeSSHConfig()
+    securizeSSHConfig()
