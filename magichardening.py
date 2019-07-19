@@ -324,7 +324,7 @@ def securizeSSHConfig():
                 print ("\033[1;32;40m [PASS] Disabled root login")
                 flag = 1
             elif (inicio2 != -1 or inicio3 != -1):
-                os.system("sed -i 's/PermitRootLogin/PermitRootLogin no/g' /etc/ssh/sshd_config")
+                os.system("sed -i 's/PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
                 print ("\033[1;32;40m [PASS] Disabled root login")
                 flag = 1
             else:
@@ -333,6 +333,52 @@ def securizeSSHConfig():
         if (flag == 1):
             os.system("systemctl restart ssh")
             print ("\033[1;37;40m [-] RESTARTING ssh service...")
+
+def securizeSSHConfigCentos():
+    ssh = os.path.exists('/etc/ssh/sshd_config')
+
+    #Check if SSH Port listen in default port and change it
+    flag = 0
+    if (ssh == True):
+        print ("\033[1;37;40m [+] Checking SSH Config...")
+        os.system("cp -Ra /etc/ssh  /tmp/.ssh")
+        cmd = os.popen("grep 'Port 22' /etc/ssh/sshd_config").read()
+        if cmd:
+            #If exist # , delete
+            inicio = cmd.find("#")
+            if (inicio != -1):
+                #sed with #
+                os.system("sed -i 's/#Port 22/Port 40022/g' /etc/ssh/sshd_config")
+                print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                flag = 1
+            else:
+                #sed without #
+                os.system("sed -i 's/Port 22/Port 40022/g' /etc/ssh/sshd_config")
+                print ("\033[1;32;40m [PASS] Changing default SSH port to 40022")
+                flag = 1
+        else:
+            print ("\033[1;34;40m [CORRECT] - The ssh is not in the default port")
+
+        cmd = os.popen("grep 'PermitRootLogin' /etc/ssh/sshd_config").read()
+        if cmd:
+            inicio = cmd.find("#")
+            inicio2 = cmd.find("yes")
+            inicio3 = cmd.find("Yes")
+            if (inicio != -1 and inicio == 0):
+                os.system("sed -i 's/#PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
+                print ("\033[1;32;40m [PASS] Disabled root login")
+                flag = 1
+            elif (inicio2 != -1 or inicio3 != -1):
+                os.system("sed -i 's/PermitRootLogin/PermitRootLogin no #/g' /etc/ssh/sshd_config")
+                print ("\033[1;32;40m [PASS] Disabled root login")
+                flag = 1
+            else:
+                print ("\033[1;34;40m [CORRECT] - The root login is disabled")
+
+        if (flag == 1):
+            os.system("systemctl restart sshd")
+            print ("\033[1;37;40m [-] RESTARTING ssh service...")
+
 
 #Check if unhide is available on the system.
 def checkUnhideAvailable():
